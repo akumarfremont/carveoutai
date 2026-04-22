@@ -1,15 +1,15 @@
 """
 CarveoutAI — Production Server
 RAG with cross-model verification loop + multi-persona debate engine.
-Deployed on Render free tier.
 """
-import os, json, time, collections
+import os, sys, json, time, collections, traceback
 from flask import Flask, request, jsonify, Response, stream_with_context
 from flask_cors import CORS
-import chromadb
-from chromadb.utils import embedding_functions
 import anthropic
 import openai
+
+print("=" * 60, flush=True)
+print("CarveoutAI: Starting up...", flush=True)
 
 # ── Config from environment ──
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -19,8 +19,10 @@ PORT = int(os.environ.get("PORT", 5111))
 ANTHROPIC_API_KEY = os.environ.get("ANTHROPIC_API_KEY", "")
 OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY", "")
 
-if not ANTHROPIC_API_KEY or not OPENAI_API_KEY:
-    print("WARNING: API keys not set. Set ANTHROPIC_API_KEY and OPENAI_API_KEY environment variables.")
+if not ANTHROPIC_API_KEY:
+    print("WARNING: ANTHROPIC_API_KEY not set!", flush=True)
+if not OPENAI_API_KEY:
+    print("WARNING: OPENAI_API_KEY not set!", flush=True)
 
 MODEL_SYNTH  = "claude-sonnet-4-20250514"
 MODEL_VERIFY = "gpt-4o-mini"
@@ -55,13 +57,29 @@ app = Flask(__name__)
 CORS(app)
 
 # ── Load ChromaDB ──
-ef = embedding_functions.DefaultEmbeddingFunction()
-client = chromadb.PersistentClient(path=DB_DIR)
-collection = client.get_collection(name="carveout_kb", embedding_function=ef)
+print(f"CarveoutAI: Loading ChromaDB from {DB_DIR}...", flush=True)
+print(f"CarveoutAI: DB dir exists: {os.path.exists(DB_DIR)}", flush=True)
+if os.path.exists(DB_DIR):
+    print(f"CarveoutAI: DB contents: {os.listdir(DB_DIR)}", flush=True)
+
+collection = None
+try:
+    import chromadb
+    from chromadb.utils import embedding_functions
+    ef = embedding_functions.DefaultEmbeddingFunction()
+    print("CarveoutAI: Embedding function loaded", flush=True)
+    client = chromadb.PersistentClient(path=DB_DIR)
+    collection = client.get_collection(name="carveout_kb", embedding_function=ef)
+    print(f"CarveoutAI: ChromaDB loaded — {collection.count()} chunks", flush=True)
+except Exception as e:
+    print(f"CarveoutAI: ERROR loading ChromaDB: {e}", flush=True)
+    traceback.print_exc()
 
 # ── LLM clients ──
 claude = anthropic.Anthropic(api_key=ANTHROPIC_API_KEY)
 gpt = openai.OpenAI(api_key=OPENAI_API_KEY)
+print("CarveoutAI: LLM clients initialized", flush=True)
+print("=" * 60, flush=True)
 
 
 # ═══════════════════════════════════════════════════════════════
@@ -147,6 +165,8 @@ def build_where_clause(scope, firm=None):
 
 
 def do_search(query, scope, firm, n_results):
+    if not collection:
+        raise Exception("ChromaDB not loaded — check server logs for startup errors")
     where = build_where_clause(scope, firm)
     kwargs = {"query_texts": [query], "n_results": min(n_results, 20)}
     if where:
@@ -619,12 +639,22 @@ def serve_app():
         return "CarveoutAI — index.html not found. Check deployment.", 404
 
 
+@app.route("/api/ping", methods=["GET"])
+def ping():
+    return jsonify({"status": "ok", "db_loaded": collection is not None})
+
+
 @app.route("/api/health", methods=["GET"])
 def health():
+    try:
+        chunks = collection.count() if collection else 0
+    except Exception as e:
+        chunks = f"error: {e}"
     return jsonify({
-        "status": "ok",
-        "chunks": collection.count(),
+        "status": "ok" if collection else "db_not_loaded",
+        "chunks": chunks,
         "rate_limit": f"{RATE_LIMIT}/hour",
+        "keys_set": {"anthropic": bool(ANTHROPIC_API_KEY), "openai": bool(OPENAI_API_KEY)},
         "models": {
             "synth": MODEL_SYNTH, "verify": MODEL_VERIFY, "refine": MODEL_REFINE,
             "debate": {k: v[1] for k, v in PERSONA_MODELS.items()},
