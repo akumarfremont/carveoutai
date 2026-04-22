@@ -1,6 +1,6 @@
 flask==3.0.0
 flask-cors==4.0.0
-gunicorn==21.2.0
-chromadb==0.4.22
-anthropic==0.40.0
-openai==1.50.0
+gunicorn==22.0.0
+chromadb==1.5.5
+anthropic>=0.40.0
+openai>=1.50.0
