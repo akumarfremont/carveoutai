@@ -63,6 +63,7 @@ if os.path.exists(DB_DIR):
     print(f"CarveoutAI: DB contents: {os.listdir(DB_DIR)}", flush=True)
 
 collection = None
+CHUNK_COUNT = 0
 try:
     import chromadb
     from chromadb.utils import embedding_functions
@@ -70,7 +71,8 @@ try:
     print("CarveoutAI: Embedding function loaded", flush=True)
     client = chromadb.PersistentClient(path=DB_DIR)
     collection = client.get_collection(name="carveout_kb", embedding_function=ef)
-    print(f"CarveoutAI: ChromaDB loaded — {collection.count()} chunks", flush=True)
+    CHUNK_COUNT = collection.count()
+    print(f"CarveoutAI: ChromaDB loaded — {CHUNK_COUNT} chunks", flush=True)
 except Exception as e:
     print(f"CarveoutAI: ERROR loading ChromaDB: {e}", flush=True)
     traceback.print_exc()
@@ -624,7 +626,7 @@ def sources():
             "chunks": info["chunks"],
         })
     big4_firms = sorted(set(s["firm"] for s in by_category.get("big4", [])))
-    return jsonify({"total_chunks": collection.count(), "big4_firms": big4_firms,
+    return jsonify({"total_chunks": CHUNK_COUNT, "big4_firms": big4_firms,
                      "by_category": by_category})
 
 
@@ -646,13 +648,9 @@ def ping():
 
 @app.route("/api/health", methods=["GET"])
 def health():
-    try:
-        chunks = collection.count() if collection else 0
-    except Exception as e:
-        chunks = f"error: {e}"
     return jsonify({
         "status": "ok" if collection else "db_not_loaded",
-        "chunks": chunks,
+        "chunks": CHUNK_COUNT,
         "rate_limit": f"{RATE_LIMIT}/hour",
         "keys_set": {"anthropic": bool(ANTHROPIC_API_KEY), "openai": bool(OPENAI_API_KEY)},
         "models": {
