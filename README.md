@@ -42,18 +42,29 @@ If you skip `pnpm embed`, the app still loads but Research and Debate will retur
 
 The repo ships with `data/raw_chunks.json` — 275 text chunks of EY (73), KPMG (188), and PwC (14), extracted from a prior ChromaDB instance. To use them you must run `pnpm embed` once, which writes `data/chunks.json` (text + embeddings) used by the app at runtime.
 
-### Adding the Deloitte guide
+### Adding or updating a firm's guide
 
-The previous build only had a Deloitte summary. To bring the full guide in:
+There is one generic chunking script that works for any firm. To add a PDF:
 
-1. Save the PDF as **`data/source-pdfs/deloitte.pdf`**.
-2. Run `pnpm ingest:deloitte`. This chunks the PDF, embeds each chunk, and merges them into `data/chunks.json`.
+1. Save the PDF in `data/source-pdfs/`, e.g. `pwc.pdf`.
+2. Chunk it (no API needed):
+   ```
+   pnpm tsx scripts/chunk-pdf.ts <Firm> <file.pdf> "<Title>" <Year>
+   # examples:
+   pnpm tsx scripts/chunk-pdf.ts Deloitte deloitte.pdf "Roadmap: Carve-Out Financial Statements" 2024
+   pnpm tsx scripts/chunk-pdf.ts PwC pwc.pdf "Carve-out Financial Statements Guide" 2024
+   ```
+   This rewrites `data/raw_chunks.json`, replacing any prior entries for that firm.
+3. Re-embed to update `data/chunks.json` (this needs `OPENAI_API_KEY` in `.env.local`):
+   ```
+   pnpm embed
+   ```
 
-You can re-run that command whenever you swap in a newer copy of the guide.
+The Deloitte 2024 Roadmap is already chunked (62 chunks committed in `data/raw_chunks.json`); you only need step 3 above to bring it online.
 
-### Re-ingesting EY / KPMG / PwC
+### PwC and EY coverage
 
-The chunks shipped here came from a corrupted SQLite store, so PwC coverage in particular is thin (only ~14 chunks). If you have the original PDFs, drop them into `data/source-pdfs/` and adapt `scripts/ingest-deloitte.ts` (or ask Claude to add an `ingest-pwc.ts` etc.) to ingest them fresh.
+The EY (73) and PwC (14) chunks shipped here came from a corrupted ChromaDB. PwC in particular is thin. If you have the original PwC and EY PDFs, drop them in `data/source-pdfs/` and re-run the chunk + embed steps.
 
 ---
 
