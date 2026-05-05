@@ -1,6 +1,31 @@
-__pycache__/
-*.pyc
+# dependencies
+node_modules
+.pnp
+.pnp.*
+
+# next
+.next
+out
+build
+next-env.d.ts.bak
+
+# env
 .env
+.env.local
+.env.*.local
+
+# editors
+.vscode
+.idea
 .DS_Store
-venv/
-*.egg-info/
+
+# python (legacy)
+__pycache__
+*.pyc
+.venv
+venv
+*.egg-info
+
+# misc
+*.tsbuildinfo
+*.log

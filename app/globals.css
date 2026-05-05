@@ -1,0 +1,95 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    color: theme("colors.ink");
+    background: theme("colors.paper");
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  body {
+    font-family: theme("fontFamily.sans");
+    font-size: 15px;
+    line-height: 1.6;
+  }
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: theme("fontFamily.serif");
+    color: theme("colors.ink");
+    letter-spacing: -0.01em;
+  }
+  ::selection {
+    background: #1f3a5f;
+    color: #fafaf7;
+  }
+}
+
+@layer components {
+  .prose-editorial {
+    font-family: theme("fontFamily.serif");
+    font-size: 17px;
+    line-height: 1.75;
+    color: theme("colors.ink");
+  }
+  .prose-editorial p {
+    margin: 0 0 1.1em 0;
+  }
+  .prose-editorial p:last-child {
+    margin-bottom: 0;
+  }
+  .prose-editorial strong {
+    font-weight: 600;
+  }
+  .prose-editorial em {
+    font-style: italic;
+  }
+  .prose-editorial h2 {
+    font-size: 22px;
+    margin: 1.4em 0 0.4em;
+    font-weight: 600;
+  }
+  .prose-editorial h3 {
+    font-size: 18px;
+    margin: 1.2em 0 0.3em;
+    font-weight: 600;
+  }
+  .prose-editorial ul,
+  .prose-editorial ol {
+    margin: 0 0 1.1em 1.4em;
+  }
+  .prose-editorial li {
+    margin-bottom: 0.4em;
+  }
+  .citation-mark {
+    font-family: theme("fontFamily.sans");
+    font-size: 0.78em;
+    color: theme("colors.accent");
+    text-decoration: none;
+    font-weight: 500;
+    padding: 0 1px;
+    vertical-align: super;
+    line-height: 1;
+  }
+  .hairline {
+    border-color: theme("colors.hairline");
+  }
+}
+
+/* subtle blink-free streaming caret */
+.streaming::after {
+  content: "▍";
+  display: inline-block;
+  margin-left: 1px;
+  color: #1f3a5f;
+  opacity: 0.55;
+  animation: caret 1s steps(2) infinite;
+}
+@keyframes caret {
+  50% {
+    opacity: 0;
+  }
+}
