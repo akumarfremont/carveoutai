@@ -4,23 +4,23 @@ import {
   resultsToCitations,
   searchKB,
 } from "@/lib/kb";
-import { RESEARCH_SYSTEM } from "@/lib/prompts";
+import { RESEARCH_SUMMARY_SYSTEM, RESEARCH_SYSTEM } from "@/lib/prompts";
 import { streamClaude } from "@/lib/claude";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
 
 export async function POST(req: NextRequest) {
-  const { question, firm } = (await req.json()) as {
+  const { question, firm, mode } = (await req.json()) as {
     question?: string;
     firm?: string;
+    mode?: "summary" | "full";
   };
   if (!question || question.trim().length < 3) {
     return Response.json({ error: "Question is required" }, { status: 400 });
   }
 
-  const firmFilter =
-    firm && firm !== "All" ? [firm] : undefined;
+  const firmFilter = firm && firm !== "All" ? [firm] : undefined;
   const results = await searchKB(question, 12, firmFilter);
   const citations = resultsToCitations(results);
   const context = buildContextBlock(results);
@@ -33,10 +33,11 @@ ${context}
 
 Answer the question using only these excerpts. Cite with [1], [2], etc. matching the bracketed numbers above.`;
 
+  const isSummary = mode !== "full";
   const stream = await streamClaude({
-    system: RESEARCH_SYSTEM,
+    system: isSummary ? RESEARCH_SUMMARY_SYSTEM : RESEARCH_SYSTEM,
     userMessage,
-    maxTokens: 2048,
+    maxTokens: isSummary ? 280 : 2048,
   });
 
   return new Response(stream, {

@@ -21,9 +21,11 @@ export default function ResearchPage() {
   const [submittedQuestion, setSubmittedQuestion] = useState<string | null>(
     null
   );
-  const [answer, setAnswer] = useState("");
+  const [summary, setSummary] = useState("");
+  const [fullAnswer, setFullAnswer] = useState("");
   const [citations, setCitations] = useState<Citation[]>([]);
   const [streaming, setStreaming] = useState(false);
+  const [expanding, setExpanding] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const [verifyOpen, setVerifyOpen] = useState(false);
@@ -39,7 +41,8 @@ export default function ResearchPage() {
     const ac = new AbortController();
     abortRef.current = ac;
     setError(null);
-    setAnswer("");
+    setSummary("");
+    setFullAnswer("");
     setCitations([]);
     setVerifyText("");
     setVerifyError(null);
@@ -50,7 +53,7 @@ export default function ResearchPage() {
       const res = await fetch("/api/research", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ question: q, firm }),
+        body: JSON.stringify({ question: q, firm, mode: "summary" }),
         signal: ac.signal,
       });
       if (!res.ok || !res.body) {
@@ -73,7 +76,7 @@ export default function ResearchPage() {
         const { value, done } = await reader.read();
         if (done) break;
         buf += decoder.decode(value, { stream: true });
-        setAnswer(buf);
+        setSummary(buf);
       }
     } catch (e) {
       if ((e as Error).name !== "AbortError") {
@@ -84,8 +87,53 @@ export default function ResearchPage() {
     }
   }, [firm, streaming]);
 
+  const expand = useCallback(async () => {
+    if (!submittedQuestion || expanding || streaming) return;
+    setError(null);
+    setFullAnswer("");
+    setExpanding(true);
+    try {
+      const res = await fetch("/api/research", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          question: submittedQuestion,
+          firm,
+          mode: "full",
+        }),
+      });
+      if (!res.ok || !res.body) {
+        const msg = await res.text().catch(() => "");
+        throw new Error(msg || `Request failed (${res.status})`);
+      }
+      const cHeader = res.headers.get("X-Citations");
+      if (cHeader) {
+        try {
+          const decoded = JSON.parse(atob(cHeader)) as Citation[];
+          setCitations(decoded);
+        } catch {
+          // ignore
+        }
+      }
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let buf = "";
+      while (true) {
+        const { value, done } = await reader.read();
+        if (done) break;
+        buf += decoder.decode(value, { stream: true });
+        setFullAnswer(buf);
+      }
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setExpanding(false);
+    }
+  }, [expanding, firm, streaming, submittedQuestion]);
+
   const verify = useCallback(async () => {
-    if (!submittedQuestion || !answer || verifyStreaming) return;
+    const textToVerify = fullAnswer || summary;
+    if (!submittedQuestion || !textToVerify || verifyStreaming) return;
     setVerifyOpen(true);
     setVerifyText("");
     setVerifyError(null);
@@ -96,7 +144,7 @@ export default function ResearchPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           question: submittedQuestion,
-          answer,
+          answer: textToVerify,
           citations,
         }),
       });
@@ -118,7 +166,7 @@ export default function ResearchPage() {
     } finally {
       setVerifyStreaming(false);
     }
-  }, [answer, citations, submittedQuestion, verifyStreaming]);
+  }, [citations, fullAnswer, submittedQuestion, summary, verifyStreaming]);
 
   const idle = !submittedQuestion;
 
@@ -224,13 +272,18 @@ export default function ResearchPage() {
         </p>
       )}
 
-      {(answer || streaming) && (
+      {(summary || streaming) && (
         <article className="relative mt-12 rounded border hairline bg-white px-8 py-8 shadow-[0_1px_2px_rgba(15,15,14,0.04)]">
           <div className="absolute right-5 top-5">
             <button
               type="button"
               onClick={verify}
-              disabled={!answer || streaming || verifyStreaming}
+              disabled={
+                (!summary && !fullAnswer) ||
+                streaming ||
+                expanding ||
+                verifyStreaming
+              }
               className="rounded border hairline bg-paper px-3 py-1.5 font-sans text-[11.5px] font-semibold uppercase tracking-wider text-accent transition hover:bg-accent-soft disabled:cursor-not-allowed disabled:opacity-40"
               title="Have GPT-4o independently critique this answer"
             >
@@ -238,11 +291,38 @@ export default function ResearchPage() {
             </button>
           </div>
           <p className="font-sans text-[10.5px] uppercase tracking-[0.18em] text-muted">
-            Answer · Claude
+            Summary · Claude
           </p>
           <div className="mt-4">
-            <RenderedAnswer text={answer} streaming={streaming} />
+            <RenderedAnswer text={summary} streaming={streaming} />
           </div>
+
+          {!streaming && summary && !fullAnswer && !expanding && (
+            <div className="mt-6 border-t hairline pt-5">
+              <button
+                type="button"
+                onClick={expand}
+                className="rounded border hairline bg-paper px-4 py-2 font-sans text-[12px] font-semibold uppercase tracking-wider text-accent transition hover:bg-accent-soft"
+              >
+                Expand for detailed analysis →
+              </button>
+              <p className="mt-2 font-sans text-[11.5px] text-muted">
+                Generates a longer, fully-cited response. Uses more tokens.
+              </p>
+            </div>
+          )}
+
+          {(expanding || fullAnswer) && (
+            <div className="mt-8 border-t hairline pt-6">
+              <p className="font-sans text-[10.5px] uppercase tracking-[0.18em] text-muted">
+                Detailed analysis
+              </p>
+              <div className="mt-4">
+                <RenderedAnswer text={fullAnswer} streaming={expanding} />
+              </div>
+            </div>
+          )}
+
           <CitationList citations={citations} />
         </article>
       )}
