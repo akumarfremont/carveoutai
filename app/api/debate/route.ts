@@ -59,12 +59,12 @@ export async function POST(req: NextRequest) {
       ? await streamClaude({
           system: persona.system,
           userMessage,
-          maxTokens: 1200,
+          maxTokens: 350,
         })
       : await streamGPT({
           system: persona.system,
           userMessage,
-          maxTokens: 1200,
+          maxTokens: 350,
         });
 
   return new Response(stream, {

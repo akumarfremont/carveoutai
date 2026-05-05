@@ -35,6 +35,18 @@
     line-height: 1.75;
     color: theme("colors.ink");
   }
+  .prose-compact {
+    font-family: theme("fontFamily.serif");
+    font-size: 14.5px;
+    line-height: 1.6;
+    color: theme("colors.ink");
+  }
+  .prose-compact p {
+    margin: 0 0 0.7em 0;
+  }
+  .prose-compact p:last-child {
+    margin-bottom: 0;
+  }
   .prose-editorial p {
     margin: 0 0 1.1em 0;
   }

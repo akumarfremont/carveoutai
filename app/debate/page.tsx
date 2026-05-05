@@ -161,8 +161,16 @@ export default function DebatePage() {
 
   const inSetup = turns.length === 0;
 
+  const speakerA = picked[0];
+  const speakerB = picked[1];
+  const findTurn = (
+    sp: PersonaId | undefined,
+    role: Turn["role"]
+  ): Turn | undefined =>
+    sp ? turns.find((t) => t.speaker === sp && t.role === role) : undefined;
+
   return (
-    <div className="mx-auto max-w-4xl">
+    <div className="mx-auto max-w-5xl">
       <header className="pt-6">
         <p className="font-sans text-[12px] uppercase tracking-[0.18em] text-muted">
           Debate
@@ -171,7 +179,7 @@ export default function DebatePage() {
           Two voices, one carve-out question.
         </h1>
         <p className="mt-3 max-w-2xl font-serif text-[16.5px] leading-relaxed text-ink/75">
-          Choose two participants and a topic. Each opens, rebuts the other, and the first speaker closes with a synthesis — five turns total, every claim grounded in the Big 4 guides.
+          Choose two participants and a topic. Each opens, rebuts the other, and the first speaker closes with a synthesis — five short turns, every claim grounded in the Big 4 guides.
         </p>
       </header>
 
@@ -202,11 +210,36 @@ export default function DebatePage() {
               ← New debate
             </button>
           </div>
-          <div className="space-y-8">
-            {turns.map((t) => (
-              <TurnView key={t.id} turn={t} />
-            ))}
+          <div className="grid gap-px overflow-hidden rounded border hairline bg-hairline md:grid-cols-2">
+            <PersonaHeaderCard personaId={speakerA} side="left" />
+            <PersonaHeaderCard personaId={speakerB} side="right" />
+
+            <PhaseCell turn={findTurn(speakerA, "opening")} label="Opening" />
+            <PhaseCell turn={findTurn(speakerB, "opening")} label="Opening" />
+
+            <PhaseCell turn={findTurn(speakerA, "rebuttal")} label="Rebuttal" />
+            <PhaseCell turn={findTurn(speakerB, "rebuttal")} label="Rebuttal" />
           </div>
+
+          {findTurn(speakerA, "synthesis") && (
+            <div className="mt-6 rounded border hairline bg-white px-7 py-6">
+              <div className="flex items-baseline gap-3 border-b hairline pb-3">
+                <span className="font-sans text-[10.5px] uppercase tracking-[0.18em] text-accent">
+                  Joint synthesis
+                </span>
+                <span className="font-sans text-[11.5px] text-muted">
+                  by {speakerA && PERSONAS.find((p) => p.id === speakerA)?.name}
+                </span>
+              </div>
+              <div className="mt-4">
+                <RenderedAnswer
+                  text={findTurn(speakerA, "synthesis")!.text}
+                  streaming={findTurn(speakerA, "synthesis")!.streaming}
+                  variant="compact"
+                />
+              </div>
+            </div>
+          )}
           {!running && allCitations.length > 0 && (
             <section className="mt-14 border-t hairline pt-7">
               <h3 className="font-sans text-[11px] font-semibold uppercase tracking-[0.18em] text-muted">
@@ -328,35 +361,62 @@ function Setup({
   );
 }
 
-function TurnView({ turn }: { turn: Turn }) {
-  const persona = PERSONAS.find((p) => p.id === turn.speaker)!;
-  const roleLabel =
-    turn.role === "opening"
-      ? "Opening"
-      : turn.role === "rebuttal"
-        ? "Rebuttal"
-        : "Synthesis";
+function PersonaHeaderCard({
+  personaId,
+  side,
+}: {
+  personaId: PersonaId | undefined;
+  side: "left" | "right";
+}) {
+  const persona = personaId
+    ? PERSONAS.find((p) => p.id === personaId)
+    : undefined;
   return (
-    <article className="relative rounded border hairline bg-white px-7 py-6 shadow-[0_1px_2px_rgba(15,15,14,0.03)]">
-      <div className="flex items-baseline gap-3 border-b hairline pb-3">
-        <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-accent-soft font-sans text-[11.5px] font-semibold text-accent">
-          {persona.initials}
+    <div
+      className={`bg-white p-4 ${side === "left" ? "" : ""}`}
+    >
+      <div className="flex items-center gap-3">
+        <span className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-accent text-paper font-sans text-[12px] font-semibold">
+          {persona?.initials ?? "?"}
         </span>
-        <div className="flex-1">
+        <div>
           <p className="font-serif text-[15.5px] font-semibold text-ink">
-            {persona.name}
+            {persona?.name ?? "—"}
           </p>
-          <p className="font-sans text-[11px] uppercase tracking-wider text-muted">
-            {persona.role}
+          <p className="font-sans text-[10.5px] uppercase tracking-wider text-muted">
+            {persona?.role ?? ""}
           </p>
         </div>
-        <span className="rounded-full border hairline px-2.5 py-0.5 font-sans text-[10.5px] font-semibold uppercase tracking-wider text-muted">
-          {roleLabel}
-        </span>
       </div>
-      <div className="mt-4">
-        <RenderedAnswer text={turn.text} streaming={turn.streaming} />
+    </div>
+  );
+}
+
+function PhaseCell({
+  turn,
+  label,
+}: {
+  turn: Turn | undefined;
+  label: string;
+}) {
+  return (
+    <div className="bg-white p-5 min-h-[160px]">
+      <p className="font-sans text-[10px] font-semibold uppercase tracking-[0.18em] text-muted">
+        {label}
+      </p>
+      <div className="mt-2.5">
+        {turn ? (
+          <RenderedAnswer
+            text={turn.text}
+            streaming={turn.streaming}
+            variant="compact"
+          />
+        ) : (
+          <p className="font-sans text-[13px] italic text-muted">
+            Waiting…
+          </p>
+        )}
       </div>
-    </article>
+    </div>
   );
 }

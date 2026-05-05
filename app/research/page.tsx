@@ -12,8 +12,12 @@ const SUGGESTED = [
   "When is a carve-out entity required to present three years of audited financials versus two?",
 ];
 
+const FIRMS = ["All", "EY", "KPMG", "PwC", "Deloitte"] as const;
+type FirmChoice = (typeof FIRMS)[number];
+
 export default function ResearchPage() {
   const [question, setQuestion] = useState("");
+  const [firm, setFirm] = useState<FirmChoice>("All");
   const [submittedQuestion, setSubmittedQuestion] = useState<string | null>(
     null
   );
@@ -46,7 +50,7 @@ export default function ResearchPage() {
       const res = await fetch("/api/research", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ question: q }),
+        body: JSON.stringify({ question: q, firm }),
         signal: ac.signal,
       });
       if (!res.ok || !res.body) {
@@ -78,7 +82,7 @@ export default function ResearchPage() {
     } finally {
       setStreaming(false);
     }
-  }, [streaming]);
+  }, [firm, streaming]);
 
   const verify = useCallback(async () => {
     if (!submittedQuestion || !answer || verifyStreaming) return;
@@ -164,6 +168,24 @@ export default function ResearchPage() {
             placeholder="e.g. How should goodwill be allocated to a carve-out entity?"
             className="flex-1 resize-none bg-transparent px-3 py-3 font-sans text-[15px] text-ink placeholder:text-muted/80 focus:outline-none"
           />
+          <div className="relative self-stretch">
+            <select
+              value={firm}
+              onChange={(e) => setFirm(e.target.value as FirmChoice)}
+              disabled={streaming}
+              aria-label="Filter sources by firm"
+              className="h-full appearance-none rounded border hairline bg-paper px-3 pr-7 font-sans text-[13px] text-ink transition hover:border-ink/40 focus:border-ink/50 focus:outline-none disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {FIRMS.map((f) => (
+                <option key={f} value={f}>
+                  {f === "All" ? "All firms" : f}
+                </option>
+              ))}
+            </select>
+            <span className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-[10px] text-muted">
+              ▾
+            </span>
+          </div>
           <button
             type="submit"
             disabled={!question.trim() || streaming}
@@ -172,6 +194,11 @@ export default function ResearchPage() {
             {streaming ? "Researching…" : "Ask"}
           </button>
         </div>
+        <p className="mt-2 font-sans text-[11.5px] text-muted">
+          {firm === "All"
+            ? "Searching all four Big 4 guides."
+            : `Searching ${firm} only.`}
+        </p>
         {idle && (
           <div className="mt-4 flex flex-wrap gap-2">
             {SUGGESTED.map((s) => (

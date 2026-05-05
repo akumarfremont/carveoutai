@@ -6,13 +6,16 @@ import React from "react";
 export function RenderedAnswer({
   text,
   streaming,
+  variant = "editorial",
 }: {
   text: string;
   streaming?: boolean;
+  variant?: "editorial" | "compact";
 }) {
   const paragraphs = text.split(/\n{2,}/).map((p) => p.trim()).filter(Boolean);
+  const cls = variant === "compact" ? "prose-compact" : "prose-editorial";
   return (
-    <div className={`prose-editorial ${streaming ? "streaming" : ""}`}>
+    <div className={`${cls} ${streaming ? "streaming" : ""}`}>
       {paragraphs.map((p, i) => (
         <p key={i}>{renderInline(p)}</p>
       ))}

@@ -11,12 +11,17 @@ export const runtime = "nodejs";
 export const maxDuration = 60;
 
 export async function POST(req: NextRequest) {
-  const { question } = (await req.json()) as { question?: string };
+  const { question, firm } = (await req.json()) as {
+    question?: string;
+    firm?: string;
+  };
   if (!question || question.trim().length < 3) {
     return Response.json({ error: "Question is required" }, { status: 400 });
   }
 
-  const results = await searchKB(question, 12);
+  const firmFilter =
+    firm && firm !== "All" ? [firm] : undefined;
+  const results = await searchKB(question, 12, firmFilter);
   const citations = resultsToCitations(results);
   const context = buildContextBlock(results);
 
