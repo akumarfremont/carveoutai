@@ -23,7 +23,6 @@ export type Attempt = {
 };
 
 export type Player = {
-  email: string;
   handle: string;
   signed_up_at: string; // ISO
   has_seen_cold_open: boolean;
@@ -101,16 +100,23 @@ export function getPlayer(): Player | null {
   return STATE.player;
 }
 
-export function signUp(email: string, handle: string): Player {
+export function enterAsNew(handle = "rookie"): Player {
   const player: Player = {
-    email: email.trim().toLowerCase(),
-    handle: handle.trim().replace(/^@/, ""),
+    handle: handle.trim().replace(/^@/, "") || "rookie",
     signed_up_at: new Date().toISOString(),
     has_seen_cold_open: false,
     attempts: [],
   };
   write(player);
   return player;
+}
+
+export function setHandle(handle: string) {
+  const p = getPlayer();
+  if (!p) return;
+  const cleaned = handle.trim().replace(/^@/, "");
+  if (!cleaned) return;
+  write({ ...p, handle: cleaned });
 }
 
 export function markColdOpenSeen() {
@@ -170,7 +176,6 @@ export function reset() {
 // meaningfully. Triggered from the splash via a "Use demo account" link.
 export function seedDemo(): Player {
   const player: Player = {
-    email: "demo@sdu.test",
     handle: "vmehta",
     signed_up_at: new Date(Date.now() - 1000 * 60 * 60 * 24 * 4).toISOString(),
     has_seen_cold_open: true,
