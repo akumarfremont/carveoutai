@@ -5,103 +5,87 @@
 @layer base {
   html {
     color: theme("colors.ink");
-    background: theme("colors.paper");
+    background: theme("colors.bone");
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    -webkit-tap-highlight-color: transparent;
   }
   body {
     font-family: theme("fontFamily.sans");
-    font-size: 15px;
-    line-height: 1.6;
-  }
-  h1,
-  h2,
-  h3,
-  h4 {
-    font-family: theme("fontFamily.serif");
-    color: theme("colors.ink");
-    letter-spacing: -0.01em;
+    font-size: 17px;
+    line-height: 1.55;
+    overscroll-behavior-y: none;
   }
   ::selection {
-    background: #1f3a5f;
-    color: #fafaf7;
+    background: theme("colors.evidence");
+    color: theme("colors.ink");
+  }
+  .font-mono {
+    font-feature-settings: "tnum" 1, "lnum" 1;
   }
 }
 
 @layer components {
-  .prose-editorial {
+  /* Case file body — readable serif, generous line-height */
+  .prose-file {
     font-family: theme("fontFamily.serif");
     font-size: 17px;
-    line-height: 1.75;
+    line-height: 1.7;
     color: theme("colors.ink");
   }
-  .prose-compact {
-    font-family: theme("fontFamily.serif");
-    font-size: 14.5px;
-    line-height: 1.6;
-    color: theme("colors.ink");
+  .prose-file p {
+    margin: 0 0 1.05em 0;
   }
-  .prose-compact p {
-    margin: 0 0 0.7em 0;
-  }
-  .prose-compact p:last-child {
+  .prose-file p:last-child {
     margin-bottom: 0;
   }
-  .prose-editorial p {
-    margin: 0 0 1.1em 0;
-  }
-  .prose-editorial p:last-child {
-    margin-bottom: 0;
-  }
-  .prose-editorial strong {
+  .prose-file strong {
     font-weight: 600;
   }
-  .prose-editorial em {
-    font-style: italic;
+  .prose-file ul {
+    margin: 0 0 1.05em 1.2em;
+    list-style: disc;
   }
-  .prose-editorial h2 {
-    font-size: 22px;
-    margin: 1.4em 0 0.4em;
-    font-weight: 600;
+  .prose-file li {
+    margin-bottom: 0.5em;
   }
-  .prose-editorial h3 {
-    font-size: 18px;
-    margin: 1.2em 0 0.3em;
-    font-weight: 600;
-  }
-  .prose-editorial ul,
-  .prose-editorial ol {
-    margin: 0 0 1.1em 1.4em;
-  }
-  .prose-editorial li {
-    margin-bottom: 0.4em;
-  }
-  .citation-mark {
+
+  /* Compact uppercase sans label */
+  .tag {
     font-family: theme("fontFamily.sans");
-    font-size: 0.78em;
-    color: theme("colors.accent");
-    text-decoration: none;
-    font-weight: 500;
-    padding: 0 1px;
-    vertical-align: super;
-    line-height: 1;
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    font-weight: 600;
   }
-  .hairline {
+
+  /* Procedural date stamp: Times caps, wide tracking */
+  .stamp {
+    font-family: theme("fontFamily.proc");
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+  }
+
+  .hairline-b {
     border-color: theme("colors.hairline");
+  }
+  .hairline-d {
+    border-color: theme("colors.hairline-dim");
   }
 }
 
-/* subtle blink-free streaming caret */
-.streaming::after {
-  content: "▍";
-  display: inline-block;
-  margin-left: 1px;
-  color: #1f3a5f;
-  opacity: 0.55;
-  animation: caret 1s steps(2) infinite;
+/* Mobile-first viewport: kill horizontal scroll */
+html,
+body {
+  overflow-x: hidden;
 }
-@keyframes caret {
-  50% {
-    opacity: 0;
-  }
+
+/* Strip number input spinners on confidence stepper */
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type="number"] {
+  -moz-appearance: textfield;
 }

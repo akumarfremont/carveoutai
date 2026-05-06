@@ -1,6 +1,5 @@
-import type { Metadata } from "next";
-import { Inter, Source_Serif_4 } from "next/font/google";
-import Link from "next/link";
+import type { Metadata, Viewport } from "next";
+import { Inter, Source_Serif_4, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 
 const sans = Inter({
@@ -16,10 +15,25 @@ const serif = Source_Serif_4({
   weight: ["400", "500", "600", "700"],
 });
 
+const mono = JetBrains_Mono({
+  subsets: ["latin"],
+  variable: "--font-mono",
+  display: "swap",
+  weight: ["400", "500", "600"],
+});
+
 export const metadata: Metadata = {
-  title: "CarveoutAI",
+  title: "SDU — Sharp Diligence Unit",
   description:
-    "Carve-out financial statements research, grounded in the Big 4 guides.",
+    "A judgment training game for finance professionals. Real failed deals, anonymized. Override the agent. Hold the line.",
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+  themeColor: "#0A0A0A",
 };
 
 export default function RootLayout({
@@ -28,39 +42,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={`${sans.variable} ${serif.variable}`}>
-      <body>
-        <header className="border-b hairline">
-          <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3 sm:px-6 sm:py-4">
-            <Link
-              href="/"
-              className="font-serif text-[18px] font-semibold tracking-tight text-ink sm:text-[20px]"
-            >
-              CarveoutAI
-            </Link>
-            <nav className="flex gap-4 text-[12px] font-medium uppercase tracking-wider text-muted sm:gap-7 sm:text-[13px]">
-              <Link
-                href="/research"
-                className="transition hover:text-ink"
-              >
-                Research
-              </Link>
-              <Link
-                href="/debate"
-                className="transition hover:text-ink"
-              >
-                Debate
-              </Link>
-            </nav>
-          </div>
-        </header>
-        <main className="mx-auto max-w-6xl px-4 py-6 sm:px-6 sm:py-10">{children}</main>
-        <footer className="border-t hairline mt-16 sm:mt-24">
-          <div className="mx-auto max-w-6xl px-4 py-5 text-[11.5px] text-muted sm:px-6 sm:py-6 sm:text-[12px]">
-            Grounded in the Big 4 carve-out guides — EY, KPMG, PwC, Deloitte. Answers reflect the source excerpts only.
-          </div>
-        </footer>
-      </body>
+    <html
+      lang="en"
+      className={`${sans.variable} ${serif.variable} ${mono.variable}`}
+    >
+      <body className="min-h-screen">{children}</body>
     </html>
   );
 }
