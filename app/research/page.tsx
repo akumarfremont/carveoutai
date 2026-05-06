@@ -173,23 +173,23 @@ export default function ResearchPage() {
   return (
     <div className="mx-auto max-w-3xl">
       {idle ? (
-        <header className="pt-6">
-          <p className="font-sans text-[12px] uppercase tracking-[0.18em] text-muted">
+        <header className="pt-2 sm:pt-6">
+          <p className="font-sans text-[11px] uppercase tracking-[0.18em] text-muted sm:text-[12px]">
             Research
           </p>
-          <h1 className="mt-3 font-serif text-[34px] font-semibold leading-tight text-ink">
+          <h1 className="mt-2 font-serif text-[26px] font-semibold leading-tight text-ink sm:mt-3 sm:text-[34px]">
             Ask a carve-out question.
           </h1>
-          <p className="mt-3 font-serif text-[16.5px] leading-relaxed text-ink/75">
+          <p className="mt-2.5 font-serif text-[15px] leading-relaxed text-ink/75 sm:mt-3 sm:text-[16.5px]">
             The answer is drawn from EY, KPMG, PwC, and Deloitte carve-out guides. Citations link to the firm and page.
           </p>
         </header>
       ) : (
-        <header className="pt-6">
+        <header className="pt-2 sm:pt-6">
           <p className="font-sans text-[11px] uppercase tracking-[0.18em] text-muted">
             Question
           </p>
-          <h1 className="mt-2 font-serif text-[24px] font-semibold leading-tight text-ink">
+          <h1 className="mt-2 font-serif text-[19px] font-semibold leading-snug text-ink sm:text-[24px] sm:leading-tight">
             {submittedQuestion}
           </h1>
         </header>
@@ -200,11 +200,11 @@ export default function ResearchPage() {
           e.preventDefault();
           submit(question);
         }}
-        className="mt-7"
+        className="mt-5 sm:mt-7"
       >
-        <div className="flex items-stretch gap-2 rounded border hairline bg-paper p-1.5 focus-within:border-ink/50">
+        <div className="rounded border hairline bg-paper p-1.5 focus-within:border-ink/50">
           <textarea
-            rows={1}
+            rows={2}
             value={question}
             onChange={(e) => setQuestion(e.target.value)}
             onKeyDown={(e) => {
@@ -214,33 +214,35 @@ export default function ResearchPage() {
               }
             }}
             placeholder="e.g. How should goodwill be allocated to a carve-out entity?"
-            className="flex-1 resize-none bg-transparent px-3 py-3 font-sans text-[15px] text-ink placeholder:text-muted/80 focus:outline-none"
+            className="w-full resize-none bg-transparent px-3 py-2.5 font-sans text-[15px] text-ink placeholder:text-muted/80 focus:outline-none sm:py-3"
           />
-          <div className="relative self-stretch">
-            <select
-              value={firm}
-              onChange={(e) => setFirm(e.target.value as FirmChoice)}
-              disabled={streaming}
-              aria-label="Filter sources by firm"
-              className="h-full appearance-none rounded border hairline bg-paper px-3 pr-7 font-sans text-[13px] text-ink transition hover:border-ink/40 focus:border-ink/50 focus:outline-none disabled:cursor-not-allowed disabled:opacity-60"
+          <div className="mt-1.5 flex items-stretch gap-2 border-t hairline pt-1.5">
+            <div className="relative flex-1 sm:flex-initial">
+              <select
+                value={firm}
+                onChange={(e) => setFirm(e.target.value as FirmChoice)}
+                disabled={streaming}
+                aria-label="Filter sources by firm"
+                className="h-full w-full appearance-none rounded border hairline bg-paper px-3 pr-7 py-2 font-sans text-[13px] text-ink transition hover:border-ink/40 focus:border-ink/50 focus:outline-none disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {FIRMS.map((f) => (
+                  <option key={f} value={f}>
+                    {f === "All" ? "All firms" : f}
+                  </option>
+                ))}
+              </select>
+              <span className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-[10px] text-muted">
+                ▾
+              </span>
+            </div>
+            <button
+              type="submit"
+              disabled={!question.trim() || streaming}
+              className="flex-1 rounded bg-ink px-5 py-2 font-sans text-[13px] font-semibold uppercase tracking-wider text-paper transition hover:bg-accent disabled:cursor-not-allowed disabled:bg-muted/40 sm:flex-initial"
             >
-              {FIRMS.map((f) => (
-                <option key={f} value={f}>
-                  {f === "All" ? "All firms" : f}
-                </option>
-              ))}
-            </select>
-            <span className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-[10px] text-muted">
-              ▾
-            </span>
+              {streaming ? "Researching…" : "Ask"}
+            </button>
           </div>
-          <button
-            type="submit"
-            disabled={!question.trim() || streaming}
-            className="self-stretch rounded bg-ink px-5 font-sans text-[13px] font-semibold uppercase tracking-wider text-paper transition hover:bg-accent disabled:cursor-not-allowed disabled:bg-muted/40"
-          >
-            {streaming ? "Researching…" : "Ask"}
-          </button>
         </div>
         <p className="mt-2 font-sans text-[11.5px] text-muted">
           {firm === "All"
@@ -273,8 +275,11 @@ export default function ResearchPage() {
       )}
 
       {(summary || streaming) && (
-        <article className="relative mt-12 rounded border hairline bg-white px-8 py-8 shadow-[0_1px_2px_rgba(15,15,14,0.04)]">
-          <div className="absolute right-5 top-5">
+        <article className="relative mt-8 rounded border hairline bg-white px-5 py-6 shadow-[0_1px_2px_rgba(15,15,14,0.04)] sm:mt-12 sm:px-8 sm:py-8">
+          <div className="mb-4 flex items-baseline justify-between gap-3 sm:mb-0 sm:absolute sm:right-5 sm:top-5">
+            <p className="font-sans text-[10.5px] uppercase tracking-[0.18em] text-muted sm:hidden">
+              Summary · Claude
+            </p>
             <button
               type="button"
               onClick={verify}
@@ -284,16 +289,16 @@ export default function ResearchPage() {
                 expanding ||
                 verifyStreaming
               }
-              className="rounded border hairline bg-paper px-3 py-1.5 font-sans text-[11.5px] font-semibold uppercase tracking-wider text-accent transition hover:bg-accent-soft disabled:cursor-not-allowed disabled:opacity-40"
+              className="rounded border hairline bg-paper px-3 py-1.5 font-sans text-[11px] font-semibold uppercase tracking-wider text-accent transition hover:bg-accent-soft disabled:cursor-not-allowed disabled:opacity-40 sm:text-[11.5px]"
               title="Have GPT-4o independently critique this answer"
             >
               {verifyStreaming ? "Verifying…" : "Verify with ChatGPT"}
             </button>
           </div>
-          <p className="font-sans text-[10.5px] uppercase tracking-[0.18em] text-muted">
+          <p className="hidden font-sans text-[10.5px] uppercase tracking-[0.18em] text-muted sm:block">
             Summary · Claude
           </p>
-          <div className="mt-4">
+          <div className="mt-3 sm:mt-4">
             <RenderedAnswer text={summary} streaming={streaming} />
           </div>
 

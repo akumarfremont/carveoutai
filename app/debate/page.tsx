@@ -171,14 +171,14 @@ export default function DebatePage() {
 
   return (
     <div className="mx-auto max-w-5xl">
-      <header className="pt-6">
-        <p className="font-sans text-[12px] uppercase tracking-[0.18em] text-muted">
+      <header className="pt-2 sm:pt-6">
+        <p className="font-sans text-[11px] uppercase tracking-[0.18em] text-muted sm:text-[12px]">
           Debate
         </p>
-        <h1 className="mt-3 font-serif text-[34px] font-semibold leading-tight text-ink">
+        <h1 className="mt-2 font-serif text-[26px] font-semibold leading-tight text-ink sm:mt-3 sm:text-[34px]">
           Two voices, one carve-out question.
         </h1>
-        <p className="mt-3 max-w-2xl font-serif text-[16.5px] leading-relaxed text-ink/75">
+        <p className="mt-2.5 max-w-2xl font-serif text-[15px] leading-relaxed text-ink/75 sm:mt-3 sm:text-[16.5px]">
           Choose two participants and a topic. Each opens, rebuts the other, and the first speaker closes with a synthesis — five short turns, every claim grounded in the Big 4 guides.
         </p>
       </header>
@@ -193,21 +193,23 @@ export default function DebatePage() {
           running={running}
         />
       ) : (
-        <div className="mt-10">
-          <div className="mb-6 flex items-baseline justify-between border-b hairline pb-4">
-            <div>
+        <div className="mt-6 sm:mt-10">
+          <div className="mb-5 flex items-baseline justify-between gap-3 border-b hairline pb-3 sm:mb-6 sm:pb-4">
+            <div className="min-w-0 flex-1">
               <p className="font-sans text-[10.5px] uppercase tracking-[0.18em] text-muted">
                 Topic
               </p>
-              <p className="mt-1 font-serif text-[18px] text-ink">{topic}</p>
+              <p className="mt-1 font-serif text-[15px] leading-snug text-ink sm:text-[18px]">
+                {topic}
+              </p>
             </div>
             <button
               type="button"
               onClick={reset}
               disabled={running}
-              className="font-sans text-[12px] uppercase tracking-wider text-muted transition hover:text-ink disabled:opacity-40"
+              className="shrink-0 font-sans text-[11.5px] uppercase tracking-wider text-muted transition hover:text-ink disabled:opacity-40 sm:text-[12px]"
             >
-              ← New debate
+              ← New
             </button>
           </div>
           <div className="grid gap-px overflow-hidden rounded border hairline bg-hairline md:grid-cols-2">
@@ -285,7 +287,7 @@ function Setup({
   running: boolean;
 }) {
   return (
-    <div className="mt-10">
+    <div className="mt-6 sm:mt-10">
       <p className="font-sans text-[11px] font-semibold uppercase tracking-[0.18em] text-muted">
         1 · Topic
       </p>
@@ -293,11 +295,11 @@ function Setup({
         value={topic}
         onChange={(e) => setTopic(e.target.value)}
         placeholder="e.g. Should shared corporate technology costs be allocated to the carve-out by headcount or by usage?"
-        rows={2}
-        className="mt-2 w-full resize-none rounded border hairline bg-paper p-3 font-serif text-[16px] leading-relaxed text-ink placeholder:text-muted/80 focus:border-ink/50 focus:outline-none"
+        rows={3}
+        className="mt-2 w-full resize-none rounded border hairline bg-paper p-3 font-serif text-[15px] leading-relaxed text-ink placeholder:text-muted/80 focus:border-ink/50 focus:outline-none sm:text-[16px]"
       />
 
-      <p className="mt-9 font-sans text-[11px] font-semibold uppercase tracking-[0.18em] text-muted">
+      <p className="mt-7 font-sans text-[11px] font-semibold uppercase tracking-[0.18em] text-muted sm:mt-9">
         2 · Pick two voices ({picked.length}/2)
       </p>
       <div className="mt-3 grid gap-3 sm:grid-cols-3">
@@ -347,12 +349,12 @@ function Setup({
         })}
       </div>
 
-      <div className="mt-9 flex justify-end">
+      <div className="mt-7 sm:mt-9">
         <button
           type="button"
           onClick={start}
           disabled={running || picked.length !== 2 || !topic.trim()}
-          className="rounded bg-ink px-6 py-3 font-sans text-[13px] font-semibold uppercase tracking-wider text-paper transition hover:bg-accent disabled:cursor-not-allowed disabled:bg-muted/40"
+          className="w-full rounded bg-ink px-6 py-3 font-sans text-[13px] font-semibold uppercase tracking-wider text-paper transition hover:bg-accent disabled:cursor-not-allowed disabled:bg-muted/40 sm:w-auto sm:float-right"
         >
           {running ? "Debating…" : "Start debate"}
         </button>
@@ -400,11 +402,11 @@ function PhaseCell({
   label: string;
 }) {
   return (
-    <div className="bg-white p-5 min-h-[160px]">
+    <div className="min-h-[120px] bg-white p-4 sm:min-h-[160px] sm:p-5">
       <p className="font-sans text-[10px] font-semibold uppercase tracking-[0.18em] text-muted">
         {label}
       </p>
-      <div className="mt-2.5">
+      <div className="mt-2 sm:mt-2.5">
         {turn ? (
           <RenderedAnswer
             text={turn.text}

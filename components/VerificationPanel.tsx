@@ -38,24 +38,24 @@ export function VerificationPanel({
           open ? "translate-x-0" : "translate-x-full"
         }`}
       >
-        <div className="flex items-baseline justify-between border-b hairline px-6 py-5">
-          <div>
+        <div className="flex items-baseline justify-between border-b hairline px-4 py-4 sm:px-6 sm:py-5">
+          <div className="min-w-0">
             <p className="font-sans text-[10.5px] font-semibold uppercase tracking-[0.18em] text-muted">
               Independent verification
             </p>
-            <h3 className="font-serif text-[20px] font-semibold text-ink">
+            <h3 className="font-serif text-[18px] font-semibold text-ink sm:text-[20px]">
               GPT-4o critique
             </h3>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="font-sans text-[13px] text-muted transition hover:text-ink"
+            className="shrink-0 font-sans text-[13px] text-muted transition hover:text-ink"
           >
             Close
           </button>
         </div>
-        <div className="h-[calc(100%-4.5rem)] overflow-y-auto px-6 py-6">
+        <div className="h-[calc(100%-4.5rem)] overflow-y-auto px-4 py-5 sm:px-6 sm:py-6">
           {error ? (
             <p className="font-sans text-[14px] text-red-700">{error}</p>
           ) : text || streaming ? (
