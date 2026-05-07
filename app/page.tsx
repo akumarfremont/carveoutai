@@ -45,6 +45,7 @@ export default function SplashPage() {
   if (phase === "coldOpen") {
     return (
       <ColdOpen
+        autoPlay
         onDone={() => {
           markColdOpenSeen();
           router.replace("/dashboard");
