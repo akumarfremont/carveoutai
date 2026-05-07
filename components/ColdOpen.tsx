@@ -33,35 +33,40 @@ export default function ColdOpen({ onDone, autoPlay = false }: Props) {
   const [phase, setPhase] = useState<Phase>(autoPlay ? "v1" : "primer");
   const voiceRef = useRef<HTMLAudioElement | null>(null);
   const dunRef = useRef<HTMLAudioElement | null>(null);
+  const timersRef = useRef<number[]>([]);
   const startedRef = useRef(false);
+  const onDoneRef = useRef(onDone);
+
+  // Keep latest onDone so timers fire the right callback even if it changes.
+  useEffect(() => {
+    onDoneRef.current = onDone;
+  });
 
   // Sequence timing (ms from the moment the user starts the open):
-  //   0      -> v1 ("In the M&A justice system...")
-  //   3500   -> v2 ("But the judgment calls...")
-  //   8000   -> v3 ("These are their cases.")
+  //   0      -> v1
+  //   3500   -> v2
+  //   8000   -> v3
   //   9500   -> dunDun
   //   10100  -> title
   //   11700  -> fadeOut
   //   12200  -> done
-  useEffect(() => {
-    if (phase === "primer") return;
+  function startSequence() {
     if (startedRef.current) return;
     startedRef.current = true;
+    setPhase("v1");
 
-    // Try to play the voiceover. If it fails (no file / autoplay block),
-    // the visual sequence still runs — we just stay silent.
     const v = voiceRef.current;
     if (v) {
       v.currentTime = 0;
       v.play().catch(() => {
-        /* swallow */
+        /* missing file or autoplay blocked — visuals run silent */
       });
     }
 
-    const timers: number[] = [];
-    timers.push(window.setTimeout(() => setPhase("v2"), 3500));
-    timers.push(window.setTimeout(() => setPhase("v3"), 8000));
-    timers.push(
+    const t = timersRef.current;
+    t.push(window.setTimeout(() => setPhase("v2"), 3500));
+    t.push(window.setTimeout(() => setPhase("v3"), 8000));
+    t.push(
       window.setTimeout(() => {
         setPhase("dunDun");
         const d = dunRef.current;
@@ -71,24 +76,23 @@ export default function ColdOpen({ onDone, autoPlay = false }: Props) {
         }
       }, 9500),
     );
-    timers.push(window.setTimeout(() => setPhase("title"), 10100));
-    timers.push(window.setTimeout(() => setPhase("fadeOut"), 11700));
-    timers.push(window.setTimeout(() => onDone(), 12200));
-
-    return () => {
-      for (const t of timers) window.clearTimeout(t);
-      if (v) {
-        v.pause();
-      }
-    };
-  }, [phase, onDone]);
-
-  function startSequence() {
-    setPhase("v1");
+    t.push(window.setTimeout(() => setPhase("title"), 10100));
+    t.push(window.setTimeout(() => setPhase("fadeOut"), 11700));
+    t.push(window.setTimeout(() => onDoneRef.current(), 12200));
   }
 
-  // Visual: dun-dun is a quick brightening of the screen — no red flash, just
-  // a brief warm white pulse.
+  // Run once: kick off the sequence if autoPlay; always wire unmount cleanup.
+  useEffect(() => {
+    if (autoPlay) startSequence();
+    return () => {
+      for (const id of timersRef.current) window.clearTimeout(id);
+      timersRef.current = [];
+      const v = voiceRef.current;
+      if (v) v.pause();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   return (
     <div
       className={`fixed inset-0 z-50 flex items-center justify-center bg-ink text-bone transition-opacity duration-500 ${
@@ -120,16 +124,9 @@ export default function ColdOpen({ onDone, autoPlay = false }: Props) {
         </button>
       ) : (
         <>
-          <VOLine
-            visible={phase === "v1"}
-            text={LINE_1}
-          />
-          <VOLine
-            visible={phase === "v2"}
-            text={LINE_2}
-          />
+          <VOLine visible={phase === "v1"} text={LINE_1} />
+          <VOLine visible={phase === "v2"} text={LINE_2} />
           <VOLine visible={phase === "v3"} text={LINE_3} />
-          {/* dun-dun white pulse */}
           <div
             className={`pointer-events-none absolute inset-0 bg-bone transition-opacity duration-150 ${
               phase === "dunDun" ? "opacity-100" : "opacity-0"
